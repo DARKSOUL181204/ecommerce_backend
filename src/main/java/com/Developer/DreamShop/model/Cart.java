@@ -25,11 +25,14 @@ public class Cart {
     private long id;
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
-
-
     // there can be multiple cart items in a single cart
     @OneToMany(mappedBy = "cart",cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<CartItem> cartItems = new HashSet<>();
+
+    @OneToOne
+    @JoinColumn(name="user_id")
+    private User user;
+
 
 
     public void addItem(CartItem item) {

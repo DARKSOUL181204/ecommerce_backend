@@ -2,6 +2,7 @@ package com.Developer.DreamShop.service.product;
 
 import com.Developer.DreamShop.dto.ImageDto;
 import com.Developer.DreamShop.dto.ProductDto;
+import com.Developer.DreamShop.exceptions.AlreadyExistException;
 import com.Developer.DreamShop.exceptions.ProductNotFoundException;
 import com.Developer.DreamShop.model.Category;
 import com.Developer.DreamShop.model.Image;
@@ -37,6 +38,13 @@ public class productService implements IProductService{
         // if no then create new category and then add new product
 
 //Optional.ofNullable is to handle null cases
+
+        if (productExist(request.getProductName(), request.getProductBrand())) {
+            throw new AlreadyExistException(
+                    request.getProductBrand() + " " + request.getProductName() + " already exists , you may update product"
+            );
+        }
+
         Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
                 .orElseGet(()->{
                     // if null then create new newCategory
@@ -50,6 +58,13 @@ public class productService implements IProductService{
         // take all attributes of the saved category
         return productRepository.save(createProduct(request,category));
     }
+
+    private boolean productExist(String name,String brand){
+        return productRepository.existsByNameAndBrand(name,brand);
+    }
+
+
+
     private Product createProduct(AddProductRequest request, Category category){
     return new Product(
             request.getProductName(),

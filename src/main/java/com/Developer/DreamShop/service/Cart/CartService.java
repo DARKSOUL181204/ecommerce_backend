@@ -3,6 +3,7 @@ package com.Developer.DreamShop.service.Cart;
 import com.Developer.DreamShop.exceptions.ResourceNotFoundException;
 import com.Developer.DreamShop.model.Cart;
 import com.Developer.DreamShop.model.CartItem;
+import com.Developer.DreamShop.model.User;
 import com.Developer.DreamShop.repository.CartItemRepository;
 import com.Developer.DreamShop.repository.CartRepository;
 import jakarta.transaction.Transactional;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -53,9 +55,20 @@ public class CartService implements ICartService{
 
 
 @Override
-public Long initializeNewCart() {
-    Cart newCart = new Cart();
-    return cartRepository.save(newCart).getId();
+public Cart initializeNewCart(User user) {
+   return Optional.ofNullable(getCartByUserId(user.getId())).orElseGet(()->{
+       Cart cart = new Cart();
+       cart.setUser(user);
+       return cartRepository.save(cart);
+   });
 }
+
+
+
+    @Override
+    public Cart getCartByUserId(Long userId) {
+
+        return cartRepository.findByUserId(userId);
+    }
 
 }

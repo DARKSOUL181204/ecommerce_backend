@@ -9,6 +9,7 @@ import com.Developer.DreamShop.response.ApiResponse;
 import com.Developer.DreamShop.service.product.IProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,7 +41,7 @@ public class ProductController {
                     .body(new ApiResponse("Product not found: " + e.getMessage(), null));
         }
     }
-
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<ApiResponse> addProduct(@RequestBody AddProductRequest request) {
         try {
@@ -51,7 +52,7 @@ public class ProductController {
                     .body(new ApiResponse("Already Exist Error  : " , null));
         }
     }
-
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/{productId}/update")
     public ResponseEntity<ApiResponse> updateProduct(@RequestBody ProductUpdateRequest request,
                                                      @PathVariable long productId) {
@@ -63,7 +64,7 @@ public class ProductController {
                     .body(new ApiResponse("Product not found: " + e.getMessage(), null));
         }
     }
-
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse> deleteProductById(@PathVariable long id) {
         try {

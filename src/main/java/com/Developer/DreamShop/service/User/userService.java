@@ -9,6 +9,9 @@ import com.Developer.DreamShop.request.CreateUserRequest;
 import com.Developer.DreamShop.request.UpdateUserRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -20,6 +23,7 @@ public class userService implements IUserService{
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
 
     @Override
@@ -37,7 +41,7 @@ public class userService implements IUserService{
                .map(req ->{
                    User user = new User();
                    user.setEmail(req.getEmail());
-                   user.setPassword(req.getPassword());
+                   user.setPassword(passwordEncoder.encode(req.getPassword()));
                    user.setFirstName(req.getFirstName());
                    user.setLastName(req.getLastName());
                    return userRepository.save(user);
@@ -71,7 +75,12 @@ public class userService implements IUserService{
         return modelMapper.map(user,UserDto.class);
     }
 
-
+    @Override
+    public User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        return userRepository.findByEmail(email);
+    }
 
 
 }

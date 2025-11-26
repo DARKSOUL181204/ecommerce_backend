@@ -1,6 +1,7 @@
 package com.Developer.DreamShop.controller;
 
 
+import com.Developer.DreamShop.exceptions.ResourceNotFoundException;
 import com.Developer.DreamShop.model.Cart;
 import com.Developer.DreamShop.model.CartItem;
 import com.Developer.DreamShop.model.User;
@@ -8,14 +9,15 @@ import com.Developer.DreamShop.response.ApiResponse;
 import com.Developer.DreamShop.service.Cart.ICartItemService;
 import com.Developer.DreamShop.service.Cart.ICartService;
 import com.Developer.DreamShop.service.User.IUserService;
+import io.jsonwebtoken.JwtException;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import static org.springframework.http.HttpStatus.CONFLICT;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -25,64 +27,23 @@ public class CartItemController {
     private final ICartItemService cartItemService;
     public final ICartService cartService;
 
+
     @PostMapping("/add")
     public ResponseEntity<ApiResponse>addItemToCart(
                                                     @RequestParam long productId,
                                                     @RequestParam int quantity){
 
-        User user = userService.findUserById(4L);
         try {
+            User user = userService.getAuthenticatedUser();
             Cart cart = cartService.initializeNewCart(user);
             cartItemService.addItemToCart(cart.getId(), productId, quantity);
             return ResponseEntity.ok(new ApiResponse("Successfully Added CartItem" ,null ));
-        } catch (Exception e) {
-            return ResponseEntity.status(CONFLICT).body(new ApiResponse("Error Already Exist" + e.getMessage() , null));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(NOT_FOUND).body(new ApiResponse("Resource not found" + e.getMessage() , null));
+        }catch (JwtException e) {
+            return ResponseEntity.status(UNAUTHORIZED).body(new ApiResponse("unauthorized" + e.getMessage() , null));
         }
     }
-
-//    @PostMapping("/add")
-//    public ResponseEntity<ApiResponse> addItemToCart(
-//            @RequestParam(required = false) Long id,
-//            @RequestParam long productId,
-//            @RequestParam int quantity) {
-//
-//        try {
-//            // Step 1: Validate quantity
-//            if (quantity <= 0) {
-//                return ResponseEntity.badRequest()
-//                        .body(new ApiResponse("Quantity must be greater than zero", null));
-//            }
-//
-//            // Step 2: Check / initialize cart
-//            try {
-//                if (id == null || id <= 0) {
-//                    id = cartService.initializeNewCart();
-//                    if (id == null) {
-//                        throw new RuntimeException("Cart initialization returned null");
-//                    }
-//                }
-//            } catch (Exception e) {
-//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                        .body(new ApiResponse("Error in cart initialization: " + e.getMessage(), null));
-//            }
-//
-//            // Step 3: Add item to cart
-//            try {
-//                cartItemService.addItemToCart(id, productId, quantity);
-//            } catch (Exception e) {
-//                return ResponseEntity.status(HttpStatus.CONFLICT)
-//                        .body(new ApiResponse("Error in adding item to cart: " + e.getMessage(), null));
-//            }
-//
-//            // Step 4: Success response
-//            return ResponseEntity.ok(new ApiResponse("Successfully Added CartItem", id));
-//
-//        } catch (Exception e) {
-//            // Step 5: Catch any unexpected top-level exceptions
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                    .body(new ApiResponse("Unexpected error: " + e.getMessage(), null));
-//        }
-//    }
 
 
 
